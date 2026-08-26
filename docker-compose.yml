@@ -1,0 +1,7 @@
+services:
+  calculator:
+    build:
+      context: .
+    restart: unless-stopped
+    expose:
+      - "80"

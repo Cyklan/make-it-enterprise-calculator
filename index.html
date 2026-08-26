@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, viewport-fit=cover"
+    />
+    <meta
+      name="description"
+      content="A simple calculator for adding two numbers."
+    />
+    <title>Addition calculator</title>
+  </head>
+  <body>
+    <main>
+      <form id="calculator" class="calculator" novalidate>
+        <div class="calculator-row">
+          <label class="sr-only" for="first-number">First number</label>
+          <input
+            id="first-number"
+            name="first"
+            class="slot"
+            type="text"
+            inputmode="decimal"
+            required
+            autofocus
+            data-testid="first"
+          />
+          <span class="operator" aria-hidden="true">+</span>
+          <label class="sr-only" for="second-number">Second number</label>
+          <input
+            id="second-number"
+            name="second"
+            class="slot"
+            type="text"
+            inputmode="decimal"
+            required
+            data-testid="second"
+          />
+        </div>
+        <button type="submit" class="btn-add" data-testid="add">Add</button>
+        <div class="result-row">
+          <span class="result-label">Result</span>
+          <output
+            id="result"
+            class="result-value"
+            for="first-number second-number"
+            aria-live="polite"
+            data-testid="result"
+            >—</output
+          >
+        </div>
+      </form>
+    </main>
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>

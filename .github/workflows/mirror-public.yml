@@ -1,0 +1,39 @@
+name: Mirror deployed calculator to public repository
+
+on:
+  workflow_dispatch:
+    inputs:
+      sha:
+        description: Commit SHA confirmed as deployed by Dokploy
+        required: true
+        type: string
+
+# The checkout token only reads this repository. The separate, narrowly scoped
+# PUBLIC_MIRROR_TOKEN is used solely to update the public mirror.
+permissions:
+  contents: read
+
+jobs:
+  mirror:
+    name: Mirror deployed commit
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Check out the deployed commit
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Push the deployed commit to the public mirror
+        env:
+          GH_TOKEN: ${{ secrets.PUBLIC_MIRROR_TOKEN }}
+          DEPLOYED_SHA: ${{ inputs.sha }}
+          PUBLIC_REPOSITORY: ${{ vars.PUBLIC_MIRROR_REPOSITORY }}
+        run: |
+          test -n "$PUBLIC_REPOSITORY"
+          gh auth setup-git
+          git remote add public "https://github.com/${PUBLIC_REPOSITORY}.git"
+          git push --force public "${DEPLOYED_SHA}:refs/heads/main"
