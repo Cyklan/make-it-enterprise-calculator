@@ -1,27 +1,29 @@
 import './style.css'
+import {
+  sanitizeDecimal,
+  isDecimalValid,
+  VALIDATION_MESSAGE,
+} from './enterprise/domain/decimal.js'
+import {
+  AUDIT_OPERATION,
+  AUDIT_OUTCOME,
+} from './enterprise/audit/audit-log.js'
+import { createBrowserAdditionContext } from './enterprise/index.js'
 
 const form = document.querySelector('#calculator')
 const first = document.querySelector('#first-number')
 const second = document.querySelector('#second-number')
 const result = document.querySelector('#result')
 
+const { additionService, auditLog } = createBrowserAdditionContext()
+
 const sanitizeInput = (event) => {
   const input = event.currentTarget
-  const value = input.value.replace(/[^\d.,]/g, '')
-  const decimalSeparator = value.match(/[.,]/)?.[0]
 
-  input.value = decimalSeparator
-    ? value.replace(/[.,]/g, (separator, index) =>
-        separator === decimalSeparator && index === value.indexOf(decimalSeparator)
-          ? separator
-          : '',
-      )
-    : value
+  input.value = sanitizeDecimal(input.value)
 
   input.setCustomValidity(
-    input.value && !/^\d+(?:[.,]\d+)?$/.test(input.value)
-      ? 'Enter a valid decimal number.'
-      : '',
+    input.value && !isDecimalValid(input.value) ? VALIDATION_MESSAGE : '',
   )
 }
 
@@ -32,11 +34,19 @@ form.addEventListener('submit', (event) => {
   event.preventDefault()
 
   if (!form.checkValidity()) {
+    auditLog.record({
+      operation: AUDIT_OPERATION,
+      outcome: AUDIT_OUTCOME.INVALID,
+      operands: { first: first.value, second: second.value },
+      result: null,
+    })
     form.reportValidity()
     return
   }
 
-  result.textContent = [first, second]
-    .map((input) => Number(input.value.replace(',', '.')))
-    .reduce((sum, value) => sum + value, 0)
+  const outcome = additionService.compute(first.value, second.value)
+
+  if (outcome.status === 'success') {
+    result.textContent = outcome.display
+  }
 })
